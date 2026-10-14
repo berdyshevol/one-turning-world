@@ -1,0 +1,387 @@
+:root {
+  --sky-top: #1a0f1c;
+  --sky-bottom: #3a1d2c;
+  --key-light: #ffc2cf;
+  --ink: #f6eee6;
+  --ink-soft: rgba(246, 238, 230, 0.66);
+  --ink-faint: rgba(246, 238, 230, 0.32);
+  --serif: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+  --sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --stepper-h: clamp(92px, 11vw, 132px);
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: #0a080b;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* ------------------------------------------------------------------ Sky -- */
+
+.sky {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(60vmax 46vmax at 50% 44%, color-mix(in srgb, var(--key-light) 16%, transparent), transparent 70%),
+    radial-gradient(90vmax 60vmax at 50% 120%, color-mix(in srgb, var(--sky-bottom) 90%, transparent), transparent 70%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-top) 35%, var(--sky-bottom) 100%);
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  touch-action: pan-y;
+}
+
+.grain {
+  position: fixed;
+  inset: -50%;
+  pointer-events: none;
+  opacity: 0.075;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  animation: grain 1.2s steps(4) infinite;
+}
+
+@keyframes grain {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); }
+  75% { transform: translate(-1%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* -------------------------------------------------------------- Overlay -- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.title {
+  position: absolute;
+  top: clamp(18px, 3.2vw, 40px);
+  left: clamp(20px, 4vw, 56px);
+  margin: 0;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.copy {
+  position: absolute;
+  left: clamp(20px, 4vw, 56px);
+  bottom: calc(var(--stepper-h) + clamp(28px, 4vh, 52px));
+  width: min(360px, 30vw);
+}
+
+.copy__city {
+  margin: 0 0 0.2em;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(44px, 4.6vw, 76px);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+}
+
+.copy__line {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(17px, 1.45vw, 22px);
+  line-height: 1.32;
+  color: var(--ink-soft);
+}
+
+/* ------------------------------------------------------- Solar stepper -- */
+
+.solar {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(18px, 3vh, 30px);
+  width: min(780px, calc(100vw - 40px));
+  transform: translateX(-50%);
+  aspect-ratio: 1000 / 126;
+  pointer-events: none;
+}
+
+.solar__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.solar__horizon {
+  stroke: var(--ink-faint);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.6;
+}
+
+.solar__arc {
+  fill: none;
+  stroke: rgba(246, 238, 230, 0.22);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.solar__travelled {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.solar__travelled-glow {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  opacity: 0.45;
+}
+
+.solar__glyph {
+  opacity: 0.85;
+}
+
+.solar__half {
+  fill: none;
+  stroke: #f6c9b0;
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.solar__half--set {
+  stroke: #a8c8f0;
+}
+
+.solar__ray {
+  stroke: #ffe2a8;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.solar__glyph--rise .solar__ray {
+  stroke: #f6c9b0;
+}
+
+.solar__reflect {
+  stroke: #a8c8f0;
+  stroke-width: 1;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.7;
+}
+
+.solar__sun-core {
+  fill: #fff5e2;
+}
+
+.solar__cities {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.solar__city {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.solar__dot {
+  pointer-events: auto;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.solar__pip {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(246, 238, 230, 0.55);
+  box-shadow: 0 0 0 3px rgba(10, 8, 11, 0.35);
+  transition: transform 0.4s ease, background 0.4s ease;
+}
+
+.solar__dot[aria-current] .solar__pip {
+  background: #fff5e2;
+  transform: scale(1.2);
+}
+
+.solar__dot:focus-visible {
+  outline: none;
+}
+
+.solar__dot:focus-visible .solar__pip {
+  box-shadow: 0 0 0 2px #0a080b, 0 0 0 4px var(--ink);
+}
+
+.solar__name,
+.solar__season {
+  position: absolute;
+  left: 50%;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.solar__name {
+  top: calc(100% - 2px);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  transition: color 0.4s ease;
+}
+
+.solar__dot[aria-current] .solar__name {
+  color: var(--ink);
+}
+
+.solar__season {
+  top: calc(100% + 15px);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-faint);
+  opacity: 0;
+  transform: translate(-50%, -3px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.solar__dot:hover .solar__season,
+.solar__dot:focus-visible .solar__season {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  color: var(--ink-soft);
+}
+
+/* Touch: no hover, so the active season stays available. */
+@media (hover: none) {
+  .solar__dot[aria-current] .solar__season {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.journey-line {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(246, 238, 230, 0.06);
+}
+
+.journey-line__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f6b8c8, #f0c27a, #ffe2a8, #f29a84, #9cc8f4);
+  opacity: 0.5;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+.track {
+  position: relative;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------- Mobile -- */
+
+@media (max-width: 699px) {
+  :root {
+    --stepper-h: 64px;
+  }
+
+  .copy {
+    left: 22px;
+    right: 22px;
+    width: auto;
+    bottom: calc(var(--stepper-h) + 54px);
+  }
+
+  .copy__city {
+    font-size: 40px;
+  }
+
+  .copy__line {
+    font-size: 17px;
+    max-width: 30ch;
+  }
+
+  .solar {
+    width: calc(100vw - 28px);
+    bottom: 34px;
+  }
+
+  .solar__name {
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+  }
+
+  .solar__season {
+    font-size: 12px;
+    top: calc(100% + 11px);
+  }
+
+  .solar__dot {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (min-width: 700px) and (max-width: 1099px) {
+  .copy {
+    width: min(340px, 42vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain {
+    animation: none;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
