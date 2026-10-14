@@ -144,7 +144,7 @@ export class Experience {
     const tablet = !mobile && width < 1100
     // Globe radius in CSS pixels; keeps the Earth dominant but never clipped.
     const radius = mobile
-      ? Math.min(width * 0.36, height * 0.2)
+      ? Math.min(width * 0.4, height * 0.22)
       : tablet
         ? Math.min(width * 0.27, height * 0.27)
         : Math.min(height * 0.28, width * 0.21)
@@ -313,7 +313,7 @@ export class Experience {
     } else {
       // A large gap between scroll and journey (scrollbar drag, End key, a
       // hard fling) is treated like a click jump to wherever the scroll is.
-      if (Math.abs(journey.target - this.spring.value) > 0.4 && !journey.jumping) {
+      if (Math.abs(journey.target - this.spring.value) > 0.5 && !journey.jumping) {
         journey.jumping = true
         journey.followTarget = true
       }

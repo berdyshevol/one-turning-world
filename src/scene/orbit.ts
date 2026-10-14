@@ -138,7 +138,7 @@ export class OrbitTracker {
       this.locked = true
     } else if (mode === 'limited') {
       this.locked = false
-      smoothDamp(a, target, 0.18, dt, 3.2)
+      smoothDamp(a, target, 0.16, dt, 4.5)
     } else {
       // Rejoin the scroll path continuously, then stay locked to it.
       if (!this.locked && Math.abs(target - a.value) < 0.003) this.locked = true
