@@ -264,7 +264,11 @@ body {
   left: 50%;
   white-space: nowrap;
   transform: translateX(-50%);
-  pointer-events: none;
+}
+
+/* The city name is part of the button, so it is clickable too. */
+.solar__name {
+  padding: 2px 6px 6px;
 }
 
 .solar__name {
