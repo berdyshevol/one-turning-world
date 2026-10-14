@@ -23,6 +23,13 @@ export const journey = {
   target: 0,
   snapshot: { cityFloat: 0, active: 0, local: 0 } as JourneySnapshot,
   reducedMotion: false,
+  /**
+   * True while a click-initiated journey to a city is under way. Hand-driven
+   * scrolling clears it: then every orbit follows the scroll exactly.
+   */
+  jumping: false,
+  /** Destination of the current jump, in city units. */
+  destination: 0,
 }
 
 export function splitCityFloat(cityFloat: number) {
@@ -53,5 +60,7 @@ export function readScroll() {
 
 export function scrollToCity(index: number) {
   const top = ((index + CITY_LANDING) / CITY_COUNT) * maxScroll()
+  journey.jumping = !journey.reducedMotion
+  journey.destination = index + CITY_LANDING
   window.scrollTo({ top, behavior: journey.reducedMotion ? 'auto' : 'smooth' })
 }

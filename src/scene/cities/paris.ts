@@ -40,7 +40,7 @@ function cathedralLines() {
 function glassFacets() {
   const g = new THREE.Group()
   const rand = seeded(41)
-  const glassMat = glass('#ffd9b0', { flat: true, iridescence: 0.3 })
+  const glassMat = glass('#b8865a', { flat: true, iridescence: 0.2 })
   for (let i = 0; i < 6; i++) {
     const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.09 + rand() * 0.06, 0), glassMat)
     m.position.set((rand() - 0.5) * 0.55, (rand() - 0.5) * 0.4, (rand() - 0.5) * 0.25)

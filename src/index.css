@@ -20,6 +20,12 @@
 html {
   background: #0a080b;
   -webkit-text-size-adjust: 100%;
+  /* The solar course is the progress indicator; hide the browser's. */
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
 }
 
 body {

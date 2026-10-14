@@ -2,11 +2,11 @@ import * as THREE from 'three'
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 import { CITIES, CITY_COUNT } from '../data/cities'
 import { handoverWeight, solarT } from '../data/solar'
-import { clamp, damp, dampFactor, smoothDamp, type SpringState } from '../lib/math'
+import { clamp, damp, dampFactor, smoothDamp, smootherstep, type SpringState } from '../lib/math'
 import { journey, publish, splitCityFloat } from '../state/journey'
 import { Globe, orientationFor, type GlobeTheme } from './Globe'
 import { LAYER } from './layers'
-import { orbitView } from './orbit'
+import { orbitView, type OrbitMode } from './orbit'
 import { OrbitGuides } from './guides'
 import { cityEnvelope, type CityRoot, type FrameContext } from './cities/common'
 import { createTokyo } from './cities/tokyo'
@@ -55,6 +55,8 @@ export class Experience {
   layout: Layout = { width: 1, height: 1, cx: 0, cy: 0, radius: 1, halfWidth: 1, sizeScale: 1 }
 
   private lastTime = performance.now()
+  /** Duration of the last frame, for inspection. */
+  lastDt = 0
   private readonly spring: SpringState = { value: 0, velocity: 0 }
   private readonly themes = CITIES.map((_, i) => themeFrom(i))
   private readonly orientations = CITIES.map((c) => orientationFor(c.lat, c.lon))
@@ -77,6 +79,7 @@ export class Experience {
   /** Validation hook: orbits follow scroll exactly, with no speed limit. */
   snapChoreography = false
   private transit = 0
+  private transitRelease = 0
   private transitEdge = 0
   private elapsed = 0
   private frame = 0
@@ -287,6 +290,7 @@ export class Experience {
     const now = performance.now()
     const dt = Math.min((now - this.lastTime) / 1000, 1 / 20)
     this.lastTime = now
+    this.lastDt = dt
     const reduced = journey.reducedMotion
     this.elapsed += reduced ? 0 : dt
     this.frame++
@@ -297,7 +301,15 @@ export class Experience {
       this.spring.value = journey.target
       this.spring.velocity = 0
     } else {
-      smoothDamp(this.spring, journey.target, 0.42, dt, 2.4)
+      // During a click jump the journey waits at the edge of the city on
+      // screen until its objects have gone round behind the Earth, so a
+      // city's landmarks never linger once the next city's light arrives.
+      let target = journey.target
+      const shown = this.cities[this.shown]
+      if (journey.jumping && shown && !shown.allHidden()) {
+        target = clamp(target, this.shown + 0.002, this.shown + 0.998)
+      }
+      smoothDamp(this.spring, target, 0.42, dt, 2.4)
     }
     const cityFloat = this.spring.value
     publish(cityFloat)
@@ -364,14 +376,21 @@ export class Experience {
   private updateChoreography(cityFloat: number, dt: number, reduced: boolean) {
     const { active, local } = journey.snapshot
     const snap = reduced || this.snapChoreography
-    const ctx = (cityLocal: number, envelope: number): FrameContext => {
-      this.envelope = snap ? envelope : damp(this.envelope, envelope, 5, dt)
+    // A click-initiated jump still travelling toward its destination.
+    // The jump ends only once the journey has come to rest at its destination.
+    const settled = Math.abs(journey.destination - cityFloat) < 0.01 && Math.abs(this.spring.velocity) < 0.03
+    if (journey.jumping && settled) journey.jumping = false
+    const jumping = journey.jumping
+    // The envelope is already a smooth function of scroll; it is only eased
+    // when an outgoing city is retired mid-way through a jump.
+    const ctx = (cityLocal: number, envelope: number, mode: OrbitMode, ease = false): FrameContext => {
+      this.envelope = ease && !snap ? damp(this.envelope, envelope, 10, dt) : envelope
       return {
         local: cityLocal,
         envelope: this.envelope,
         elapsed: this.elapsed,
         dt,
-        snap,
+        mode: snap ? 'snap' : mode,
         sizeScale: this.layout.sizeScale,
         reducedMotion: reduced,
         halfWidth: this.layout.halfWidth,
@@ -383,23 +402,53 @@ export class Experience {
     if (this.shown < 0) this.show(active, local < 0.5 ? Math.PI : -Math.PI, cityFloat)
 
     if (active !== this.shown) {
-      // Retire the outgoing city: orbits continue to its exit pole.
+      // Retire the outgoing city: its orbits carry on, at a believable pace,
+      // to the exit pole behind the Earth before the next city takes over.
       const forward = active > this.shown
       const outgoing = this.cities[this.shown]
-      outgoing.update(ctx(forward ? 1 : 0, 0))
+      outgoing.update(ctx(forward ? 1 : 0, 0, 'limited', true))
       if (!outgoing.allHidden() || this.envelope > 0.02) return
       this.show(active, forward ? Math.PI : -Math.PI, cityFloat)
     }
 
+    // Leaving this city on a click jump: its objects head for the exit pole
+    // in the direction of travel. Parked objects are already behind the
+    // Earth, so they are moved to that pole directly.
+    const city = this.cities[active]
+    if (jumping && Math.floor(journey.destination) !== active) {
+      const exitEdge = journey.destination > active ? 1 : 0
+      if (this.transit >= 0.999 && this.transitEdge !== exitEdge && city.allHidden()) {
+        city.park(exitEdge === 0 ? Math.PI : -Math.PI)
+        this.transitEdge = exitEdge
+      }
+      city.update(ctx(exitEdge, 0, 'limited', true))
+      return
+    }
+
     if (this.transit > 0) {
-      const arrived = Math.abs(journey.target - cityFloat) < 0.12 && Math.floor(journey.target) === active
-      // While fully parked, either end of the city is an equally hidden
-      // state, so the park point can follow the nearer end for free.
-      if (this.transit >= 0.999) this.transitEdge = local < 0.5 ? 0 : 1
-      if (arrived) this.transit = this.transit < 0.002 ? 0 : damp(this.transit, 0, 2.6, dt)
+      // Arrival is judged against the click's destination, not the scroll
+      // position, which can sweep through a city on its way elsewhere.
+      const goal = journey.jumping ? journey.destination : journey.target
+      const arrived = Math.abs(goal - cityFloat) < 0.12 && Math.floor(goal) === active
+      // While fully parked, both ends of the city are equally hidden poles
+      // behind the Earth, so the park point may follow the nearer end: the
+      // orbits are moved between poles directly, never round the front.
+      if (this.transit >= 0.999) {
+        const edge = local < 0.5 ? 0 : 1
+        if (edge !== this.transitEdge && this.cities[active].allHidden()) {
+          this.transitEdge = edge
+          this.cities[active].park(edge === 0 ? Math.PI : -Math.PI)
+        }
+      }
+      // On arrival the parked choreography eases (in and out) onto the scroll.
+      if (arrived) {
+        this.transitRelease = Math.min(1, this.transitRelease + dt / 1.4)
+        this.transit = this.transitRelease >= 1 ? 0 : 1 - smootherstep(0, 1, this.transitRelease)
+      }
     }
     const choreoLocal = local + (this.transitEdge - local) * this.transit
-    this.cities[active].update(ctx(choreoLocal, cityEnvelope(local) * (1 - this.transit)))
+    const mode: OrbitMode = jumping ? 'limited' : 'follow'
+    city.update(ctx(choreoLocal, cityEnvelope(local) * (1 - this.transit), mode, jumping))
   }
 
   /** Make a city's root the visible one, its orbits starting hidden. */
@@ -409,8 +458,9 @@ export class Experience {
     // Transit: when a jump carries the journey through or deep into a city,
     // its choreography stays parked behind the Earth instead of whipping
     // round its orbits.
-    const far = Math.abs(journey.target - cityFloat) > 0.5
-    this.transit = this.shown >= 0 && far && !journey.reducedMotion ? 1 : 0
+    const far = Math.abs(journey.destination - cityFloat) > 0.5
+    this.transit = this.shown >= 0 && far && journey.jumping ? 1 : 0
+    this.transitRelease = 0
     this.transitEdge = pole > 0 ? 0 : 1
     this.envelope = 0
     this.shown = index

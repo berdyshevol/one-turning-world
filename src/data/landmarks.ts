@@ -80,7 +80,7 @@ export const LANDMARKS: LandmarkConfig[] = [
     yBack: 0, yFront: -0.22, focusX: 0.6, depth: 1.9,
   },
   {
-    id: 'train', city: 'ushuaia', src: '/sprites/train.webp', pixels: [1100, 614],
+    id: 'train', city: 'ushuaia', src: '/sprites/train.webp', pixels: [1100, 627],
     height: 0.66, window: [0.42, 0.84], side: -1, scaleBack: 0.3, scaleFront: 1,
     yBack: -0.12, yFront: -0.7, focusX: -0.05, depth: 2.0,
   },

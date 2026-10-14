@@ -88,6 +88,9 @@ export function orbitTheta(local: number, window: [number, number]) {
   return Math.PI - 2 * Math.PI * eased
 }
 
+/** follow: track scroll; limited: paced spring during jumps; snap: exact. */
+export type OrbitMode = 'follow' | 'limited' | 'snap'
+
 export class OrbitTracker {
   layer: LayerId = LAYER.REAR
   readonly sample: OrbitSample = {
@@ -100,27 +103,49 @@ export class OrbitTracker {
   }
 
   /**
-   * Orbital angle as a critically damped spring with a speed limit, so a
-   * fast jump never whips an object round its orbit; it travels on the same
-   * path at a believable pace and can reverse without a jolt.
+   * Orbital angle. While scrolling normally it follows the scroll exactly;
+   * during a jump it becomes a speed-limited critically damped spring, so an
+   * object never whips round its orbit and always rejoins without a jolt.
    */
   readonly angle: SpringState = { value: Math.PI, velocity: 0 }
 
   constructor(readonly config: OrbitConfig) {}
 
+  /** Whether the angle is locked to the scroll-driven target. */
+  private locked = true
+
   /** Place the object at a hidden pole (behind the Earth) with no velocity. */
   park(theta: number) {
     this.angle.value = theta
     this.angle.velocity = 0
+    this.locked = false
   }
 
-  evaluate(local: number, sizeScale: number, dt: number, snap = false) {
+  evaluate(local: number, sizeScale: number, dt: number, mode: OrbitMode = 'follow') {
     const c = this.config
     const radiusX = orbitRadiusX(c, sizeScale)
     const target = orbitTheta(local, c.window)
-    if (snap) this.park(target)
-    else smoothDamp(this.angle, target, 0.16, dt, 2.8)
-    const theta = this.angle.value
+    const a = this.angle
+    if (mode === 'snap') {
+      a.value = target
+      a.velocity = 0
+      this.locked = true
+    } else if (mode === 'limited') {
+      this.locked = false
+      smoothDamp(a, target, 0.18, dt, 3.2)
+    } else {
+      // Rejoin the scroll path continuously, then stay locked to it.
+      if (!this.locked && Math.abs(target - a.value) < 0.003) this.locked = true
+      if (this.locked) {
+        // Keep a velocity estimate so a later spring phase starts from the
+        // object's real motion.
+        a.velocity = dt > 0 ? (target - a.value) / dt : 0
+        a.value = target
+      } else {
+        smoothDamp(a, target, 0.14, dt, 3)
+      }
+    }
+    const theta = a.value
     const cos = Math.cos(theta)
     const sin = Math.sin(theta)
     const front = (1 + cos) / 2

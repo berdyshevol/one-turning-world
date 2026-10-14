@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { smoothstep } from '../../lib/math'
 import { LAYER, setLayer } from '../layers'
-import { OrbitTracker, type OrbitConfig } from '../orbit'
+import { OrbitTracker, type OrbitConfig, type OrbitMode } from '../orbit'
 import { LayeredParticles } from '../particles'
 import { sharedLight } from '../shared'
 
@@ -12,8 +12,8 @@ export interface FrameContext {
   envelope: number
   elapsed: number
   dt: number
-  /** Track targets exactly (reduced motion, validation). */
-  snap: boolean
+  /** How orbits track their targets this frame. */
+  mode: OrbitMode
   /** Responsive multiplier for object sizes (smaller on narrow screens). */
   sizeScale: number
   reducedMotion: boolean
@@ -115,7 +115,7 @@ export class CityRoot {
   update(ctx: FrameContext) {
     const t = ctx.reducedMotion ? 0 : ctx.elapsed
     for (const m of this.motifs) {
-      const s = m.tracker.evaluate(ctx.local, ctx.sizeScale, ctx.dt, ctx.snap)
+      const s = m.tracker.evaluate(ctx.local, ctx.sizeScale, ctx.dt, ctx.mode)
       m.tracker.apply(m.object)
       m.object.scale.setScalar(s.scale)
       // Spin follows orbital progress so reversing scroll reverses rotation;
@@ -330,7 +330,7 @@ const glassFragment = /* glsl */ `
     vec3 film = 0.5 + 0.5 * cos(6.2831 * (vec3(0.0, 0.33, 0.67) + fres * 1.4 + ndv * 0.6));
     vec3 rim = mix(uTint, uTint * film * 1.4, uIridescence) * mix(vec3(1.0), uLight, 0.4);
     // Faceted solids present many grazing faces at once; keep them quieter.
-    float gain = mix(1.0, 0.38, uFlat);
+    float gain = mix(1.0, 0.3, uFlat);
     vec3 col = (rim * (0.03 + fres * 0.95) + uLight * spec * 1.2) * gain;
     col *= uOpacity;
     gl_FragColor = vec4(col, max(col.r, max(col.g, col.b)));

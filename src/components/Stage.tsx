@@ -32,6 +32,8 @@ export function Stage() {
     raf = requestAnimationFrame(loop)
 
     const onScroll = () => readScroll()
+    // Any hand-driven scrolling hands control back to the scroll position.
+    const onManual = () => (journey.jumping = false)
     const onResize = () => {
       experience.resize()
       readScroll()
@@ -41,11 +43,13 @@ export function Stage() {
     onMotion()
 
     window.addEventListener('scroll', onScroll, { passive: true })
+    for (const type of ['wheel', 'touchstart', 'keydown'] as const) window.addEventListener(type, onManual, { passive: true })
     window.addEventListener('resize', onResize)
     motion.addEventListener('change', onMotion)
     return () => {
       cancelAnimationFrame(raf)
       window.removeEventListener('scroll', onScroll)
+      for (const type of ['wheel', 'touchstart', 'keydown'] as const) window.removeEventListener(type, onManual)
       window.removeEventListener('resize', onResize)
       motion.removeEventListener('change', onMotion)
       experience.dispose()
