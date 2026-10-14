@@ -44,9 +44,9 @@ function lanterns() {
   }
   const body = new THREE.LatheGeometry(profile, 32)
   const paper = physical({
-    color: '#f2cdb8',
-    emissive: '#ff8550',
-    emissiveIntensity: 0.45,
+    color: '#e9b597',
+    emissive: '#ff7a3d',
+    emissiveIntensity: 0.32,
     roughness: 0.7,
     side: THREE.DoubleSide,
   })
@@ -159,8 +159,8 @@ export function createTokyo() {
   }, { spin: [0, 0.4, 0] })
 
   root.addMotif(lacquerRibbon(), {
-    window: c, side: 1, size: [1.15, 0.5], scaleBack: 0.3, scaleFront: 1.1,
-    yBack: -0.1, yFront: -0.62, focusX: 0.15, depth: 2.0,
+    window: c, side: 1, size: [1.15, 0.85], scaleBack: 0.3, scaleFront: 1.0,
+    yBack: 0, yFront: -0.28, focusX: 0.25, depth: 2.0,
   }, { spin: [0.25, 0.2, 0.1], rotation: [0.3, 0, -0.15] })
 
   root.addMotif(needles(), {

@@ -53,21 +53,6 @@ function fanous() {
   return g
 }
 
-function stoneFacets() {
-  const g = new THREE.Group()
-  const rand = seeded(23)
-  const stone = new THREE.MeshStandardMaterial({ color: '#9a6a3e', roughness: 0.95, flatShading: true })
-  const geo = new THREE.IcosahedronGeometry(0.1, 0)
-  for (let i = 0; i < 7; i++) {
-    const m = new THREE.Mesh(geo, stone)
-    m.position.set((rand() - 0.5) * 0.6, (rand() - 0.5) * 0.35, (rand() - 0.5) * 0.3)
-    m.scale.set(0.6 + rand(), 0.5 + rand() * 0.8, 0.6 + rand())
-    m.rotation.set(rand() * 3, rand() * 3, rand() * 3)
-    g.add(m)
-  }
-  return g
-}
-
 export function createCairo() {
   const root = new CityRoot('cairo')
 
@@ -82,11 +67,6 @@ export function createCairo() {
     window: [0.52, 0.88], side: -1, size: [0.6, 0.5], scaleBack: 0.4, scaleFront: 1.0,
     yBack: 0.1, yFront: 0.42, focusX: -0.7, depth: 1.8,
   }, { spin: [0.1, 0.25, 0] })
-
-  root.addMotif(stoneFacets(), {
-    window: [0.62, 0.97], side: 1, size: [0.7, 0.45], scaleBack: 0.35, scaleFront: 0.85,
-    yBack: 0.1, yFront: 0.5, focusX: 0.5, depth: 1.9,
-  }, { spin: [0.1, 0.35, 0.05] })
 
   // Ambient summer: drifting gold motes, dense and slow like heat haze.
   const rand = seeded(31)

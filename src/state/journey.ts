@@ -30,6 +30,8 @@ export const journey = {
   jumping: false,
   /** Destination of the current jump, in city units. */
   destination: 0,
+  /** The jump was detected from scrolling; its destination tracks the scroll. */
+  followTarget: false,
 }
 
 export function splitCityFloat(cityFloat: number) {
@@ -61,6 +63,7 @@ export function readScroll() {
 export function scrollToCity(index: number) {
   const top = ((index + CITY_LANDING) / CITY_COUNT) * maxScroll()
   journey.jumping = !journey.reducedMotion
+  journey.followTarget = false
   journey.destination = index + CITY_LANDING
   window.scrollTo({ top, behavior: journey.reducedMotion ? 'auto' : 'smooth' })
 }

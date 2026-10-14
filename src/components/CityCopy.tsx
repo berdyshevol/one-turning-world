@@ -18,7 +18,7 @@ export function CityCopy() {
           initial={enter}
           animate={rest}
           exit={exit}
-          transition={{ duration: reduce ? 0.2 : 0.7, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: reduce ? 0.15 : 0.42, ease: [0.22, 1, 0.36, 1] }}
         >
           <h2 className="copy__city">{city.name}</h2>
           <p className="copy__line">{city.copy}</p>

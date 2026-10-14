@@ -165,6 +165,16 @@ export class Experience {
     const floorPx = nav ? nav.top - 10 : height * 0.86
     orbitView.distance = distance
     orbitView.floorY = -(floorPx - cy) * worldPerPx
+    // Copy keep-out applies where the copy sits beside the globe (not on
+    // phones, where it sits beneath it across the full width).
+    const copy = document.querySelector('.copy')?.getBoundingClientRect()
+    if (copy && !mobile) {
+      orbitView.copyTopY = -(copy.top - 12 - cy) * worldPerPx
+      orbitView.copyRightX = (copy.right + 12 - width / 2) * worldPerPx
+    } else {
+      orbitView.copyTopY = -Infinity
+      orbitView.copyRightX = -Infinity
+    }
     const halfWidth = (width / 2) * worldPerPx
     const sizeScale = clamp(halfWidth / 2.3, 0.62, 1)
     this.layout = { width, height, cx: width / 2, cy, radius, halfWidth, sizeScale }
@@ -301,6 +311,13 @@ export class Experience {
       this.spring.value = journey.target
       this.spring.velocity = 0
     } else {
+      // A large gap between scroll and journey (scrollbar drag, End key, a
+      // hard fling) is treated like a click jump to wherever the scroll is.
+      if (Math.abs(journey.target - this.spring.value) > 0.4 && !journey.jumping) {
+        journey.jumping = true
+        journey.followTarget = true
+      }
+      if (journey.jumping && journey.followTarget) journey.destination = journey.target
       // During a click jump the journey waits at the edge of the city on
       // screen until its objects have gone round behind the Earth, so a
       // city's landmarks never linger once the next city's light arrives.
@@ -379,7 +396,10 @@ export class Experience {
     // A click-initiated jump still travelling toward its destination.
     // The jump ends only once the journey has come to rest at its destination.
     const settled = Math.abs(journey.destination - cityFloat) < 0.01 && Math.abs(this.spring.velocity) < 0.03
-    if (journey.jumping && settled) journey.jumping = false
+    // A scroll-detected jump ends once the journey has caught up; orbits then
+    // rejoin the scroll smoothly.
+    const caughtUp = journey.followTarget ? Math.abs(journey.target - cityFloat) < 0.15 : settled
+    if (journey.jumping && caughtUp) journey.jumping = false
     const jumping = journey.jumping
     // The envelope is already a smooth function of scroll; it is only eased
     // when an outgoing city is retired mid-way through a jump.

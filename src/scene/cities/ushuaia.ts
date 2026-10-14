@@ -33,7 +33,7 @@ const auroraFragment = /* glsl */ `
     float rays = noise(x * 70.0 + uTime * 0.5) * 0.55 + noise(x * 19.0 - uTime * 0.22) * 0.45;
     float fold = 0.5 + 0.5 * sin(x * 8.0 + uTime * 0.3 + noise(x * 3.0 + uTime * 0.05) * 4.0);
     // Ragged upper boundary so the curtain dissolves rather than ending flat.
-    float top = 0.45 + 0.45 * noise(x * 7.0 + uTime * 0.12);
+    float top = 0.32 + 0.38 * noise(x * 6.0 + uTime * 0.1) + 0.22 * noise(x * 23.0 - uTime * 0.3);
     float body = smoothstep(0.0, 0.18, y) * (1.0 - smoothstep(top * 0.4, top, y));
     float edges = smoothstep(0.0, 0.32, x) * (1.0 - smoothstep(0.68, 1.0, x));
     float a = body * edges * (0.3 + 0.7 * rays) * (0.5 + 0.5 * fold) * uIntensity * 0.75;
@@ -69,15 +69,19 @@ function auroraCurtain(radius: number, arc: number, start: number, height: numbe
   return new THREE.Mesh(geo, mat)
 }
 
-function glacialPrisms() {
+function glacialShards() {
+  // A calved cluster of long ice shards leaning out from a common base.
   const g = new THREE.Group()
   const rand = seeded(83)
-  const ice = glass('#5f9fd6', { flat: true, iridescence: 0.15 })
-  for (let i = 0; i < 7; i++) {
-    const h = 0.25 + rand() * 0.45
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(0.035 + rand() * 0.03, 0.05 + rand() * 0.03, h, 6), ice)
-    m.position.set((i - 3) * 0.08 + (rand() - 0.5) * 0.04, h / 2 - 0.3, (rand() - 0.5) * 0.12)
-    m.rotation.z = (rand() - 0.5) * 0.35
+  const ice = glass('#6fb2ea', { flat: true, iridescence: 0.12 })
+  for (let i = 0; i < 9; i++) {
+    const h = 0.22 + rand() * 0.42
+    const geo = new THREE.OctahedronGeometry(0.06 + rand() * 0.035, 0)
+    geo.scale(1, h / 0.12, 0.7)
+    const m = new THREE.Mesh(geo, ice)
+    const a = (i / 9) * Math.PI * 2 + rand() * 0.4
+    m.position.set(Math.cos(a) * 0.09, h * 0.42 - 0.22, Math.sin(a) * 0.09)
+    m.rotation.set(Math.sin(a) * 0.35, rand() * 3, -Math.cos(a) * 0.35)
     g.add(m)
   }
   return g
@@ -115,7 +119,7 @@ export function createUshuaia() {
   const root = new CityRoot('ushuaia')
 
   // The lighthouse and the End of the World Train lead; ice follows.
-  root.addMotif(glacialPrisms(), {
+  root.addMotif(glacialShards(), {
     window: [0.17, 0.53], side: -1, size: [0.62, 0.7], scaleBack: 0.35, scaleFront: 1.0,
     yBack: -0.05, yFront: 0.3, focusX: -0.7, depth: 1.85,
   }, { spin: [0, 0.35, 0] })

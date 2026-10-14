@@ -12,7 +12,13 @@ export const LAYER_BAND = 0.16
  * and the lowest world y at the globe plane that stays clear of the
  * navigation. Updated on resize.
  */
-export const orbitView = { distance: 10, floorY: -Infinity }
+export const orbitView = {
+  distance: 10,
+  floorY: -Infinity,
+  /** City copy keep-out (lower left): its top edge and right edge, world units. */
+  copyTopY: -Infinity,
+  copyRightX: -Infinity,
+}
 
 /** Smooth maximum: continuous and differentiable, so motion never kinks. */
 const smax = (a: number, b: number, k: number) => (a + b + Math.sqrt((a - b) * (a - b) + k * k)) / 2
@@ -159,9 +165,18 @@ export class OrbitTracker {
     // nearer objects project lower, so the floor rises toward the camera.
     if (orbitView.floorY > -Infinity) {
       const d = orbitView.distance
-      const floorAtZ = (orbitView.floorY * (d - z)) / d
+      const toZ = (d - z) / d
+      let floor = orbitView.floorY * toZ
+      // Over the city copy, the floor rises to the copy's top edge so
+      // objects pass above the text rather than across it.
+      if (orbitView.copyTopY > orbitView.floorY) {
+        const hw = (c.size[0] * scale) / 2
+        const leftEdge = (x - hw) / toZ
+        const over = 1 - smoothstep(orbitView.copyRightX - 0.15, orbitView.copyRightX + 0.25, leftEdge)
+        floor = lerp(floor, orbitView.copyTopY * toZ, over)
+      }
       const hh = (c.size[1] * scale) / 2
-      y = smax(y, floorAtZ + hh, 0.12)
+      y = smax(y, floor + hh, 0.12)
     }
 
     this.layer = nextLayer(this.layer, z, c.depth * LAYER_BAND)

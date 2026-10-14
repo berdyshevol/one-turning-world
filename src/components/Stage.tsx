@@ -33,7 +33,9 @@ export function Stage() {
 
     const onScroll = () => readScroll()
     // Any hand-driven scrolling hands control back to the scroll position.
-    const onManual = () => (journey.jumping = false)
+    const onManual = () => {
+      if (!journey.followTarget) journey.jumping = false
+    }
     const onResize = () => {
       experience.resize()
       readScroll()
