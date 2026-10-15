@@ -15,7 +15,7 @@ export default function App() {
         <SolarStepper />
       </main>
       {/* Scroll track: one viewport-sized step per scroll state. */}
-      <div className="track" style={{ height: `calc(${TOTAL_STATES} * 72svh + 100svh)` }} aria-hidden="true" />
+      <div className="track" style={{ height: `calc(${TOTAL_STATES} * 120svh + 100svh)` }} aria-hidden="true" />
     </>
   )
 }

@@ -89,7 +89,7 @@ export function orbitRadiusX(c: OrbitConfig, sizeScale = 1) {
  */
 export function orbitTheta(local: number, window: [number, number]) {
   const s = clamp((local - window[0]) / (window[1] - window[0]))
-  const k = 0.62
+  const k = 0.84
   const eased = s + (k / (2 * Math.PI)) * Math.sin(2 * Math.PI * s)
   return Math.PI - 2 * Math.PI * eased
 }
