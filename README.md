@@ -9,6 +9,22 @@ npm run dev      # local development
 npm run build    # type-check and production build
 ```
 
+## Origin
+
+The idea and the brief come from the OpenAI master dev workshop
+([katia-openai/master-dev-workshop](https://github.com/katia-openai/master-dev-workshop)),
+the "Year in a Day" prompt series:
+
+1. `prompts/year-in-a-day-01-experience.txt` — the scroll-driven globe experience.
+2. `prompts/year-in-a-day-02-sprites.txt` — landmark sprites orbiting the Earth.
+3. `prompts/year-in-a-day-03-polish-goal.txt` — the goal of reaching exhibition quality.
+
+The workshop's reference demo is
+[year-in-a-day-demo.openai.chatgpt.site](https://year-in-a-day-demo.openai.chatgpt.site).
+This implementation was built independently from those prompts; the code is not
+taken from the demo. Landmark sprites were generated with Figma AI image
+generation and keyed to transparency with `scripts/key-sprites.py`.
+
 ## Structure
 
 - `src/scene/Experience.ts` — renderer, camera, damping, city ownership, three-layer compositing (rear → Earth → foreground).
