@@ -3,6 +3,8 @@
 A scroll-driven editorial experience: one day and one year through five cities
 (Tokyo, Cairo, Paris, New York, Ushuaia) around a single persistent Three.js Earth.
 
+Live: https://one-turning-world.vercel.app
+
 ```bash
 npm install
 npm run dev      # local development
