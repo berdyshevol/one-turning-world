@@ -94,8 +94,11 @@ export function orbitTheta(local: number, window: [number, number]) {
   return Math.PI - 2 * Math.PI * eased
 }
 
-/** follow: track scroll; limited: paced spring during jumps; snap: exact. */
-export type OrbitMode = 'follow' | 'limited' | 'snap'
+/**
+ * follow: track scroll; limited: paced spring during jumps; retreat: leave
+ * by the nearer hidden pole behind the Earth; snap: exact.
+ */
+export type OrbitMode = 'follow' | 'limited' | 'retreat' | 'snap'
 
 export class OrbitTracker {
   layer: LayerId = LAYER.REAR
@@ -139,6 +142,11 @@ export class OrbitTracker {
     } else if (mode === 'limited') {
       this.locked = false
       smoothDamp(a, target, 0.16, dt, 4.5)
+    } else if (mode === 'retreat') {
+      // Both ends of the orbit are behind the Earth: go back the way it came
+      // or carry on, whichever is shorter, never round the front.
+      this.locked = false
+      smoothDamp(a, a.value > 0 ? Math.PI : -Math.PI, 0.16, dt, 4.5)
     } else {
       // Rejoin the scroll path continuously, then stay locked to it.
       if (!this.locked && Math.abs(target - a.value) < 0.003) this.locked = true

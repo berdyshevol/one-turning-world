@@ -153,5 +153,5 @@ export const TOTAL_STATES = CITY_COUNT * STATES_PER_CITY
 /** Positions of the five cities along the solar curve (Bézier parameter). */
 export const SOLAR_POSITIONS = [0.015, 0.25, 0.5, 0.75, 0.985]
 
-/** Where a city click lands inside its own section (local progress). */
-export const CITY_LANDING = 0.05
+/** Where a city click lands inside its own section (local progress): with its first landmark in front. */
+export const CITY_LANDING = 0.2

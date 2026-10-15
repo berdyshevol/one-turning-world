@@ -439,18 +439,18 @@ export class Experience {
     if (this.shown < 0) this.show(active, local < 0.5 ? Math.PI : -Math.PI, cityFloat)
 
     if (active !== this.shown) {
-      // Retire the outgoing city: its orbits carry on, at a believable pace,
-      // to the exit pole behind the Earth before the next city takes over.
+      // Retire the outgoing city: on a jump its orbits leave by the nearer
+      // pole behind the Earth; while scrolling they carry on to the exit pole.
       const forward = active > this.shown
       const outgoing = this.cities[this.shown]
-      outgoing.update(ctx(forward ? 1 : 0, 0, 'limited', true))
+      outgoing.update(ctx(forward ? 1 : 0, 0, jumping ? 'retreat' : 'limited', true))
       if (!outgoing.allHidden() || this.envelope > 0.02) return
       this.show(active, forward ? Math.PI : -Math.PI, cityFloat)
     }
 
-    // Leaving this city on a click jump: its objects head for the exit pole
-    // in the direction of travel. Parked objects are already behind the
-    // Earth, so they are moved to that pole directly.
+    // Leaving this city on a click jump: its objects go behind the Earth by
+    // the shortest way, so no landmark crosses the front on its way out.
+    // Once hidden they are moved to the exit pole directly.
     const city = this.cities[active]
     if (jumping && Math.floor(journey.destination) !== active) {
       const exitEdge = journey.destination > active ? 1 : 0
@@ -458,7 +458,7 @@ export class Experience {
         city.park(exitEdge === 0 ? Math.PI : -Math.PI)
         this.transitEdge = exitEdge
       }
-      city.update(ctx(exitEdge, 0, 'limited', true))
+      city.update(ctx(exitEdge, 0, 'retreat', true))
       return
     }
 
