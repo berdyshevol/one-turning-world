@@ -25,3 +25,5 @@ dist-ssr
 
 # Sprite keying scratch output
 node_modules/.cache
+.vercel
+.env*
