@@ -18,6 +18,16 @@ import { landmarksFor } from '../data/landmarks'
 import { addLandmarks } from './sprites'
 import { sharedLight } from './shared'
 
+/**
+ * Reading pace. The journey glides behind the scroll at a slow, steady speed
+ * (cities/s) so each landmark can be seen; scrolling further ahead raises the
+ * speed gradually rather than snapping.
+ */
+const READ_SMOOTH = 1
+const READ_SPEED = 0.06
+const READ_SPEED_PER_LEAD = 0.15
+/** A scroll lead larger than this (cities) becomes a fast jump. */
+const JUMP_GAP = 1.5
 const FOV = 30
 
 interface Layout {
@@ -313,7 +323,7 @@ export class Experience {
     } else {
       // A large gap between scroll and journey (scrollbar drag, End key, a
       // hard fling) is treated like a click jump to wherever the scroll is.
-      if (Math.abs(journey.target - this.spring.value) > 0.5 && !journey.jumping) {
+      if (Math.abs(journey.target - this.spring.value) > JUMP_GAP && !journey.jumping) {
         journey.jumping = true
         journey.followTarget = true
       }
@@ -326,7 +336,14 @@ export class Experience {
       if (journey.jumping && shown && !shown.allHidden()) {
         target = clamp(target, this.shown + 0.002, this.shown + 0.998)
       }
-      smoothDamp(this.spring, target, 0.42, dt, 2.4)
+      // Reading pace glides slowly behind the scroll so each landmark can be
+      // seen; only jumps travel fast.
+      if (journey.jumping) smoothDamp(this.spring, target, 0.42, dt, 2.4)
+      else {
+        const lead = Math.abs(target - this.spring.value)
+        const speed = READ_SPEED + READ_SPEED_PER_LEAD * Math.max(0, lead - 0.4)
+        smoothDamp(this.spring, target, READ_SMOOTH, dt, speed)
+      }
     }
     const cityFloat = this.spring.value
     publish(cityFloat)
